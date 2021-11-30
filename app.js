@@ -33,19 +33,33 @@ app.get('/home' , (req,res) => {
 })
 
 app.post('/home',async (req,res) => {
-    const {username, name, members, membersName} = req.body.Group;
-    const admin = await Person.findOne({name: username});
-    const num = Number(members)+1; 
-    const group = new Group({username:admin,name: name,members:num});
-    group.membersName.push(admin);
-    for(let memberName of membersName){
-        const member = await Person.findOne({name: memberName})
-        group.membersName.push(member);
-        member.groups.push(group);
-        await member.save();
+    try{
+        console.log(req.body);
+        const {username, name, members, membersName} = req.body.Group;
+        let admin = await Person.findOne({name: username});
+        if(!admin){
+            admin = new Person({name: username});
+        }
+        console.log(`Admin = ${admin}`);
+        const num = Number(members)+1; 
+        const group = new Group({username:admin,name: name,members:num});
+        group.membersName.push(admin);
+        for(let memberName of membersName){
+            let member = await Person.findOne({name: memberName});
+            if(!member){
+                member = new Person({name : memberName});
+            }
+            group.membersName.push(member);
+            member.groups.push(group);
+            await member.save();
+        }
+        await group.save();
+        await admin.save();
+        res.redirect(`/groups/${group._id}`);
+    }catch(error){
+        console.log(error);
+        res.send("Somthing went wrong!");
     }
-    await group.save();
-    res.redirect('/home')
 });
 
 app.get('/create' , (req,res) => {
@@ -63,19 +77,25 @@ app.get('/groups/:id', async(req,res) => {
 })
 
 app.put('/groups/:id', async(req,res) => {
-    const { id } = req.params;
-    const Group = req.body.Group;
-    const username = await Person.findOne({name :Group.username});
-    const membersName=[];
-    for(let member of Group.membersName){
-        const person = await Person.findOne({name : member});
-        if(person){
-            membersName.push(person);
+    try{
+        const { id } = req.params;
+        const people = req.body.Group;
+        const username = await Person.findOne({name :people.username.trim()});
+        console.log(`USERNAME = ${username}`);
+        const membersName=[];
+        for(let member of people.membersName){
+            const person = await Person.findOne({name : member});
+            if(person){
+                membersName.push(person);
+            }
         }
+        const group = await Group.findByIdAndUpdate(id,{username : username, membersName: membersName, members:people.members, name: people.name });
+        console.log(group);
+        await group.save();
+        res.redirect(`/groups`)
+    }catch(error){
+        console.log(error);
     }
-    const group = await Group.findByIdAndUpdate(id,{username : username, membersName: membersName, members:Group.members, name: Group.name });
-    console.log(group);
-    res.redirect(`/groups`)
 })
 
 
