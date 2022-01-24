@@ -1,3 +1,7 @@
+if(process.env.NODE_ENV !== 'production'){
+    require('dotenv').config();
+}
+
 const express = require('express');
 const methodOverride = require('method-override');
 const ejsMate = require('ejs-mate');
@@ -9,7 +13,7 @@ const groupController = require('./controller/group');
 const personController = require('./controller/person');
 
 // Mongo DB Local
-mongoose.connect('mongodb+srv://SplitIt:SplitIt@splitit.0hfaf.mongodb.net/SplitItDevelopment?retryWrites=true&w=majority', 
+mongoose.connect(process.env.DB_URL, 
     {
         useNewUrlParser: true, 
         useUnifiedTopology: true,
