@@ -1,9 +1,0 @@
-<% layout('layouts/boilerplate') %>
-    <h1>Show Page</h1>
-    <% for(let group of groups){%>
-        <div>
-            <h2>Group Name = <a href="/groups/<%= group._id %> "><%= group.name  %></a></h2>
-        </div>
-    <% } %>  
-    <a href="/home">home</a> 
-    <a href="/create">create</a>       

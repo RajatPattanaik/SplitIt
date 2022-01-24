@@ -1,0 +1,16 @@
+<% layout('layouts/boilerplate') %>
+    <h1>Name of the Group=<%= group.name %> </h1>
+    <a href="/groups/<%= group._id %>/edit ">Edit</a>
+    <form action="/groups/<%= group._id %>?_method=DELETE" method="POST">
+        <button>Delete</button>
+    </form>
+    <p>Number of members in group=<%= group.members %> </p>
+    <ul><%for(let member of group.membersName){  %>
+        <% if(member.name === group.username.name){ %>
+            <li><a href="/person/<%= member._id %>"><b><%= member.name  %> </b></a></li>
+        <% }else { %>  
+            <li><a href="/person/<%= member._id %>"><%= member.name %></a></li>
+        <% } %> 
+    <% } %> 
+    </ul>
+
