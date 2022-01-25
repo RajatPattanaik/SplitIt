@@ -1,9 +1,15 @@
+import { Fragment } from 'react';
 import './App.css';
-import ShowGroups from './components/Group/ShowGroups';
+import { Route, Routes } from 'react-router-dom'; 
+import Login from './pages/Login';
 
 function App() {
   return (
-    <ShowGroups />
+    <Fragment>
+      <Routes>
+        <Route path="Login" element={<Login/>}/>
+      </Routes>
+    </Fragment>
   );
 }
 
