@@ -9,7 +9,7 @@ function App() {
     <Fragment>
       <Routes>
         <Route path="/login" element={<Login/>}/>
-        <Route path="/home" element={<Home />} exact/>
+        <Route path="/" element={<Home />} exact/>
       </Routes>
     </Fragment>
   );

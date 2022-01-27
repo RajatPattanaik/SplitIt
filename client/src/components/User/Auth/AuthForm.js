@@ -14,9 +14,13 @@ const AuthForm = () => {
 
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [error,setError] = useState('');
   const switchAuthModeHandler = () => {
     setIsLogin((prevState) => !prevState);
+    emailInputRef.current.value = "";
+    passwordInputRef.current.value = "";
+    usernameInputRef.current.value = "";
+    setError("");
   };
 
   const submitHandler = (event) => {
@@ -35,26 +39,38 @@ const AuthForm = () => {
       url = 'http://localhost:3002/register';
     }
     const fetchLogin = async () => {
-      const response = await fetch(url, {
-        method: 'POST',
-        body: JSON.stringify({
-          username: enteredUsername,
-          password: enteredPassword,
-          email: enteredEmail,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      const data = await response.json();
-      return data;
-    }
+      try{
+        const response = await fetch(url, {
+          method: 'POST',
+          body: JSON.stringify({
+            username: enteredUsername,
+            password: enteredPassword,
+            email: enteredEmail,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        const data = await response.json();
+        if(data.error){
+          setIsLoading(false);
+          setError(data.message);
+          return;
+        }else{
+          const expirationTime = new Date(data.data.expiresIn)  
+          authCtx.login(data.data.token, expirationTime.toISOString());
+          navigate('/', { replace: true });
+        }
+      }catch(error){
+        console.log(error);
+      }
+    } 
     fetchLogin().then(data => {
       if(data){
         const expirationTime = new Date(data.expiresIn)  
         console.log(expirationTime.toISOString());
         authCtx.login(data.token, expirationTime.toISOString());
-        navigate('/home', { replace: true });
+        navigate('/', { replace: true });
       }
     }).catch(error => {
       console.log(error);
@@ -76,6 +92,7 @@ const AuthForm = () => {
         <div className={classes.control}>
           <label htmlFor='password'>Your Password</label>
           <input type='password' id='password' required ref={passwordInputRef} />
+          <div>{error!=="" ? error: ""}</div>
         </div>
         <div className={classes.actions}>
           {!isLoading && (<button>{isLogin ? 'Login' : 'Create Account'}</button>)}
