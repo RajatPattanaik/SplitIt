@@ -30,41 +30,35 @@ const AuthForm = () => {
     setIsLoading(true);
     let url;
     if (isLogin) {
-      url =
-        'http://localhost:3002/login';
+      url = 'http://localhost:3002/login';
     } else {
-      url =
-        'http://localhost:3002/register';
+      url = 'http://localhost:3002/register';
     }
-    fetch(url, {
-      method: 'POST',
-      body: JSON.stringify({
-        username: enteredUsername,
-        password: enteredPassword,
-        email: enteredEmail,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => {
-        setIsLoading(false);
-        if (res.ok) {
-          console.log(res)
-          navigate('/', { replace: true });
-        } else {
-          return res.json().then((data) => {
-            let errorMessage = 'Authentication failed!';
-            // if (data && data.error && data.error.message) {
-            //   errorMessage = data.error.message;
-            // }
-            throw new Error(errorMessage);
-          });
-        }
+    const fetchLogin = async () => {
+      const response = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({
+          username: enteredUsername,
+          password: enteredPassword,
+          email: enteredEmail,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       })
-      .catch((err) => {
-        alert(err.message);
-      });
+      const data = await response.json();
+      return data;
+    }
+    fetchLogin().then(data => {
+      if(data){
+        const expirationTime = new Date(data.expiresIn)  
+        console.log(expirationTime.toISOString());
+        authCtx.login(data.token, expirationTime.toISOString());
+        navigate('/home', { replace: true });
+      }
+    }).catch(error => {
+      console.log(error);
+    });
   };
 
   return (
@@ -81,23 +75,12 @@ const AuthForm = () => {
         </div>
         <div className={classes.control}>
           <label htmlFor='password'>Your Password</label>
-          <input
-            type='password'
-            id='password'
-            required
-            ref={passwordInputRef}
-          />
+          <input type='password' id='password' required ref={passwordInputRef} />
         </div>
         <div className={classes.actions}>
-          {!isLoading && (
-            <button>{isLogin ? 'Login' : 'Create Account'}</button>
-          )}
+          {!isLoading && (<button>{isLogin ? 'Login' : 'Create Account'}</button>)}
           {isLoading && <p>Sending request...</p>}
-          <button
-            type='button'
-            className={classes.toggle}
-            onClick={switchAuthModeHandler}
-          >
+          <button type='button' className={classes.toggle} onClick={switchAuthModeHandler}>
             {isLogin ? 'Create new account' : 'Login with existing account'}
           </button>
         </div>
