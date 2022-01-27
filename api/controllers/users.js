@@ -1,3 +1,4 @@
+const response = require("../libs/responseLib");
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -6,7 +7,8 @@ exports.register = async (req, res) => {
   try {
     const emailExist = await User.findOne({ email: req.body.email });
     if (emailExist) {
-      return res.send("Email already exists");
+      let apiResponse = response.generate(true, "Email already Exists", 400, {});
+      return res.send(apiResponse);
     }
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
@@ -20,29 +22,38 @@ exports.register = async (req, res) => {
     var future = new Date();
     future.setDate(future.getDate() + 10);
     const expiresIn = future.getTime();
-    res.send({ token: token, userId: user._id,expiresIn: expiresIn, data: "Registered Successfully"});
+    let apiResponse = response.generate(false, "User Registered Successfully", 200, { token: token, userId: user._id,expiresIn: expiresIn, data: "Registered Successfully"});
+    return res.send(apiResponse);
   }catch(error){
       console.log(error);
-      res.send("Registeration Failed!");
+      let apiResponse = response.generate(true, "Registeration Failed", 401, {});
+      return res.send(apiResponse);
   }
 }
 
 exports.login = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
-    if (!user) res.send("Incorrect Email Id");
+    if (!user) {
+      let apiResponse = response.generate(true, "Email doesn't exist", 400, {});
+      return res.send(apiResponse);
+    }
     const validPassword = await bcrypt.compare(req.body.password, user.password);
     if (validPassword) {
       const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
       var future = new Date();
       future.setDate(future.getDate() + 10);
       const expiresIn = future.getTime();
-      res.send({ token: token, userId: user._id, expiresIn: expiresIn, data: "Logged in"});
+      let apiResponse = response.generate(false, "User Logged In", 200, { token: token, userId: user._id, expiresIn: expiresIn, data: "Logged in"});
+      return res.send(apiResponse);
     }
     else {
-      res.send("Incorrect password");
+      let apiResponse = response.generate(true, "Incorrect Email or Password", 400, {});
+      return res.send(apiResponse);
     }
   }catch (error) {
-    res.send("Wrong email or password");
+    console.log(error);
+    let apiResponse = response.generate(true, "Wrong email or password", 400, {});
+    return res.send(apiResponse);
   }
 }
